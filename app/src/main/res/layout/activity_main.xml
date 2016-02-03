@@ -21,17 +21,26 @@
             android:layout_height="match_parent"
             android:layout_gravity="center_horizontal"
             android:layout_weight="1.01"
-            android:id="@+id/msgLayout">
+            android:id="@+id/superMsgLayout">
 
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="John Smith"
-                android:id="@+id/convName"
-                android:layout_gravity="center_horizontal" />
+            <ScrollView android:id="@+id/scroll"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1.01"
+                android:scrollbars="none"
+                android:scrollbarSize="0dp">
 
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_weight="1.01"
+                    android:id="@+id/msgLayout" >
+
+                </LinearLayout>
+            </ScrollView>
         </LinearLayout>
 
         <LinearLayout
@@ -58,6 +67,7 @@
                 android:layout_column="32" />
 
         </LinearLayout>
+
     </LinearLayout>
 
 

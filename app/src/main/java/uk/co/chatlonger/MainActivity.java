@@ -2,32 +2,24 @@ package uk.co.chatlonger;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
+import android.graphics.Color;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import org.apache.http.*;
+
 import org.json.JSONObject;
 import android.os.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.OutputStreamWriter;
-import java.util.HashMap;
+
 
 public class MainActivity extends AppCompatActivity {
     private String apiKey;
@@ -35,6 +27,9 @@ public class MainActivity extends AppCompatActivity {
     private Context messageContext;
     private int conversationRecipient;
     private DatabaseConnector connector;
+    private JsonConnector jsonConnector;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
                 editTxt.setText(null);
             }
         });
+        jsonConnector = new JsonConnector();
+
         messageContext = this;
         //ggthis.deleteDatabase("ChatLonger");
         build();
@@ -64,28 +61,22 @@ public class MainActivity extends AppCompatActivity {
 
                 apiKey = connector.getUserAPI();
                 userID = connector.getUserID();
-                TextView title = (TextView) findViewById(R.id.convName);
                 conversationRecipient = Integer.parseInt(connector.getConversationRecipient(conversationID));
-                title.setText(connector.getConversationName(conversationID));
+                setTitle(connector.getConversationName(conversationID));
 
 
-       /** new Thread(new Runnable() {
-            public void run() { **/
+       new Thread(new Runnable() {
+            public void run() {
                 String messages[][] = connector.getMessages(conversationID);
-                LinearLayout linearLayout = (LinearLayout)findViewById(R.id.msgLayout);
                 if (messages != null){
 
                     for (int i = 0; i < messages.length; i++){
-                        TextView msg = new TextView(messageContext);
-                        msg.setText(messages[i][2]);
-                        msg.setTextSize(25);
-                        if (messages[i][0].equals(String.valueOf(userID))) msg.setGravity(Gravity.RIGHT);
-                        else msg.setGravity(Gravity.LEFT);
-                        linearLayout.addView(msg);
+                        putMessage(messages[i][2], messages[i][0].equals(String.valueOf(userID)));
                     }
                 }
-            /**}
-        }).start();**/
+            }
+        }).start();
+        doScroll();
     }
 
     @Override
@@ -111,24 +102,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sendMessage(final String message) {
-        int duration = Toast.LENGTH_SHORT;
-        Context context = getApplicationContext();
-        LinearLayout linearLayout = (LinearLayout)findViewById(R.id.msgLayout);
-        TextView msg = new TextView(messageContext);
-        msg.setText(message);
-        msg.setTextSize(25);
-        msg.setGravity(Gravity.RIGHT);
-        linearLayout.addView(msg);
+        putMessage(message, true);
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    JsonConnector json = new JsonConnector();
                     JSONObject object = new JSONObject();
                     object.put("userid", userID);
                     object.put("user_api_key", apiKey);
                     object.put("recipient", conversationRecipient);
                     object.put("message", message);
-                    JSONObject msgObj = json.getJson(object, "http://10.0.2.2:8181/messages/send");
+                    JSONObject msgObj = jsonConnector.getJson(object, "http://10.0.2.2:8181/messages/send");
                     int id = Integer.parseInt(msgObj.getString("id"));
                     int sender = Integer.parseInt(msgObj.getString("sender"));
                     int receiver = Integer.parseInt(msgObj.getString("receiver"));
@@ -138,62 +121,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Exception e){}
             }
         }).start();
-
-    }
-
-    public void postData(final String message, final int recipient) {
-
-        new Thread(new Runnable() {
-            public void run() {
-
-                URL url;
-
-                String response = "";
-                try {
-                    JSONObject object = new JSONObject();
-                    object.put("userid", userID);
-                    object.put("user_api_key", apiKey);
-                    object.put("recipient", recipient);
-                    object.put("message", message);
-
-                    url = new URL("http://10.0.2.2:8181/messages/send");
-
-                    /** HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                     conn.setReadTimeout(15000);
-                     conn.setConnectTimeout(15000);
-                     conn.setRequestMethod("GET");
-                     conn.setDoInput(true);
-                     conn.setDoOutput(true); **/
-
-                    HttpURLConnection urlConn;
-                    DataOutputStream printout;
-                    DataInputStream  input;
-                    urlConn = (HttpURLConnection) url.openConnection();
-                    urlConn.setDoInput (true);
-                    urlConn.setDoOutput(true);
-                    urlConn.setUseCaches(false);
-                    urlConn.setRequestProperty("Content-Type", "application/json");
-                    urlConn.setRequestProperty("Host", "android.schoolportal.gr");
-                    urlConn.connect();
-                    OutputStreamWriter out = new   OutputStreamWriter(urlConn.getOutputStream());
-                    out.write(object.toString());
-                    out.close();
-
-                    int HttpResult = urlConn.getResponseCode();
-                    if(HttpResult ==HttpURLConnection.HTTP_OK){
-                    }else{
-                        Context context = getApplicationContext();
-                    }
-
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-
-            }
-        }).start();
-
 
     }
 
@@ -218,32 +145,11 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject object = new JSONObject();
                         object.put("userid", userID);
                         object.put("user_api_key", apiKey);
-                        URL url;
-                        url = new URL("http://10.0.2.2:8181/messages/receive");
-                        final HttpURLConnection urlConn;
-                        DataOutputStream printout;
-                        DataInputStream  input;
-                        urlConn = (HttpURLConnection) url.openConnection();
-                        urlConn.setDoInput(true);
-                        urlConn.setDoOutput(true);
-                        urlConn.setUseCaches(false);
-                        urlConn.setRequestProperty("Content-Type", "application/json");
-                        urlConn.setRequestProperty("Host", "android.schoolportal.gr");
-                        urlConn.connect();
-                        OutputStreamWriter out = new   OutputStreamWriter(urlConn.getOutputStream());
-                        out.write(object.toString());
-                        out.close();
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-                        StringBuilder sb = new StringBuilder();
-                        String line;
-                        while ((line = br.readLine()) != null) {
-                            sb.append(line+"\n");
-                        }
-                        br.close();
-                        Message msg = new Message();
-                        if (!(sb.toString().equals("[]"))){
+                        JSONObject msgObj = jsonConnector.getJson(object, "http://10.0.2.2:8181/messages/receive");
+                        if (!(msgObj.toString().equals("[]"))){
+                            Message msg = new Message();
                             Bundle b = new Bundle();
-                            b.putString("message", sb.toString());
+                            b.putString("message", msgObj.toString());
                             msg.setData(b);
                             handler.sendMessage(msg);
                         }
@@ -261,14 +167,7 @@ public class MainActivity extends AppCompatActivity {
 
                            while (jObject.getJSONObject(String.valueOf(i)).getString("content") != null){
                                JSONObject msgObj = jObject.getJSONObject(String.valueOf(i));
-                               LinearLayout linearLayout = (LinearLayout)findViewById(R.id.msgLayout);
-                               TextView textMsg = new TextView(messageContext);
-                               textMsg.setText(msgObj.getString("content"));
-                               textMsg.setTextSize(25);
-                               if (msgObj.getString("sender").equals(String.valueOf(userID))) textMsg.setGravity(Gravity.RIGHT);
-                               else textMsg.setGravity(Gravity.LEFT);
-                               linearLayout.addView(textMsg);
-
+                               putMessage(msgObj.getString("content"), false);
                                int id = Integer.parseInt(msgObj.getString("id"));
                                int sender = Integer.parseInt(msgObj.getString("sender"));
                                int receiver = Integer.parseInt(msgObj.getString("receiver"));
@@ -284,6 +183,36 @@ public class MainActivity extends AppCompatActivity {
             }).start();
         } catch (Exception e){}
     }
+
+    private void doScroll(){
+        final ScrollView scroll = (ScrollView)findViewById(R.id.scroll);
+        scroll.post(new Runnable() {
+            @Override
+            public void run() {
+                scroll.fullScroll(View.FOCUS_DOWN);
+            }
+        });
+    }
+
+    private void putMessage(String message, boolean sender){
+        LinearLayout linearLayout = (LinearLayout)findViewById(R.id.msgLayout);
+        TextView msg = new TextView(messageContext);
+        msg.setText(message);
+        msg.setTextSize(18);
+        if (sender){
+            msg.setGravity(Gravity.RIGHT);
+            msg.setTextColor(Color.BLUE);
+        }
+        else msg.setGravity(Gravity.LEFT);
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        msg.setMaxWidth((size.x)/2);
+        linearLayout.addView(msg);
+
+        doScroll();
+    }
+
 }
 
 
