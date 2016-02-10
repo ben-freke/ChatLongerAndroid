@@ -2,6 +2,7 @@ package uk.co.chatlonger;
 
 import android.os.Bundle;
 import android.os.Message;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -28,6 +29,7 @@ public class JsonConnector {
           DataOutputStream printout;
           DataInputStream  input;
           urlConn = (HttpURLConnection) url.openConnection();
+          urlConn.setRequestMethod("POST");
           urlConn.setDoInput(true);
           urlConn.setDoOutput(true);
           urlConn.setUseCaches(false);
@@ -36,7 +38,11 @@ public class JsonConnector {
           urlConn.connect();
           OutputStreamWriter out = new   OutputStreamWriter(urlConn.getOutputStream());
           out.write(reqObj.toString());
+
+
+
           out.close();
+          int status = urlConn.getResponseCode();
           BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
           StringBuilder sb = new StringBuilder();
           String line;
@@ -44,6 +50,7 @@ public class JsonConnector {
               sb.append(line+"\n");
           }
           br.close();
+
           String jsonStuff = sb.toString();
           JSONObject returnedObject = new JSONObject(jsonStuff);
           return returnedObject;

@@ -17,7 +17,7 @@ public class DatabaseConnector extends SQLiteOpenHelper{
 
         db.execSQL(
                 "CREATE TABLE config " +
-                        "(id INT PRIMARY KEY, name TEXT, email TEXT, apiKey TEXT)"
+                        "(id INT PRIMARY KEY, name TEXT, value TEXT)"
         );
 
         db.execSQL(
@@ -38,7 +38,7 @@ public class DatabaseConnector extends SQLiteOpenHelper{
         super(context,"ChatLonger",null,1);
         db_read = this.getReadableDatabase();
         db_write = this.getWritableDatabase();
-        //setTestData();
+       //setTestData();
     }
 
     public String getConversationName(int id){
@@ -66,14 +66,8 @@ public class DatabaseConnector extends SQLiteOpenHelper{
     }
 
     public void setTestData(){
-        ContentValues contentValues = new ContentValues();
-        contentValues.put("id", 1);
-        contentValues.put("user1", 1);
-        contentValues.put("user2", 2);
-        contentValues.put("name", "Joe Bloggs");
-        db_write.insert("conversations", null, contentValues);
 
-        contentValues = new ContentValues();
+        ContentValues contentValues = new ContentValues();
         contentValues.put("id", 2);
         contentValues.put("user1", 2);
         contentValues.put("user2", 1);
@@ -81,26 +75,82 @@ public class DatabaseConnector extends SQLiteOpenHelper{
         db_write.insert("conversations", null, contentValues);
 
         contentValues = new ContentValues();
+        contentValues.put("id", 1);
+        contentValues.put("name", "userid");
+        contentValues.put("value", "1");
+        db_write.insert("config", null, contentValues);
+
+        contentValues = new ContentValues();
         contentValues.put("id", 2);
-        contentValues.put("name", "John Smith");
-        contentValues.put("email", "john.smith@gmail.com");
-        contentValues.put("apiKey", "VzMk8S89UfBDJnqYJFxxtVGIH7FZVin4ZOq4MZcz2qcPsaLYv865cKuA67HuRa4b");
+        contentValues.put("name", "username");
+        contentValues.put("value", "John Smith");
+        db_write.insert("config", null, contentValues);
+
+        contentValues = new ContentValues();
+        contentValues.put("id", 3);
+        contentValues.put("name", "email");
+        contentValues.put("value", "john.smith@gmail.com");
+        db_write.insert("config", null, contentValues);
+
+        contentValues = new ContentValues();
+        contentValues.put("id", 4);
+        contentValues.put("name", "apikey");
+        contentValues.put("value", "VzMk8S89UfBDJnqYJFxxtVGIH7FZVin4ZOq4MZcz2qcPsaLYv865cKuA67HuRa4b");
         db_write.insert("config", null, contentValues);
 
     }
 
     public int getUserID(){
-        Cursor res =  db_read.rawQuery( "SELECT * FROM config LIMIT 1", null );
+        Cursor res =  db_read.rawQuery( "SELECT * FROM config WHERE name = 'userid' LIMIT 1", null );
         res.moveToFirst();
         if (res.getCount() == 0) return -1;
-        return Integer.parseInt(res.getString(res.getColumnIndex("id")));
+        return Integer.parseInt(res.getString(res.getColumnIndex("value")));
+    }
+
+    public boolean authenticate(int id, String username, String email, String apikey)
+    {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("id", 1);
+        contentValues.put("name", "userid");
+        contentValues.put("value", id);
+        db_write.insert("config", null, contentValues);
+
+        contentValues = new ContentValues();
+        contentValues.put("id", 2);
+        contentValues.put("name", "username");
+        contentValues.put("value", username);
+        db_write.insert("config", null, contentValues);
+
+        contentValues = new ContentValues();
+        contentValues.put("id", 3);
+        contentValues.put("name", "email");
+        contentValues.put("value", email);
+        db_write.insert("config", null, contentValues);
+
+        contentValues = new ContentValues();
+        contentValues.put("id", 4);
+        contentValues.put("name", "apikey");
+        contentValues.put("value", apikey);
+        db_write.insert("config", null, contentValues);
+
+        return true;
+    }
+
+    public boolean putConversation(int convID, int user1, int user2, String name){
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("id", convID);
+        contentValues.put("user1", user1);
+        contentValues.put("user2", user2);
+        contentValues.put("name", name);
+        db_write.insert("conversations", null, contentValues);
+        return true;
     }
 
     public String getUserAPI(){
-        Cursor res =  db_read.rawQuery( "SELECT * FROM config LIMIT 1", null );
+        Cursor res =  db_read.rawQuery( "SELECT * FROM config WHERE name = 'apikey' LIMIT 1", null );
         res.moveToFirst();
         if (res.getCount() == 0) return null;
-        return (res.getString(res.getColumnIndex("apiKey")));
+        return (res.getString(res.getColumnIndex("value")));
     }
 
     public String[][] getMessages(int conversationID){
@@ -122,6 +172,20 @@ public class DatabaseConnector extends SQLiteOpenHelper{
         }
         res.close();
         return messages;
+    }
+
+    public String[][] getConversations(){
+        Cursor res =  db_read.rawQuery( "SELECT * FROM conversations", null );
+        if (res.getCount() == 0) return null;
+        String conversations[][] = new String[res.getCount()][2];
+        int i = 0;
+        while (res.moveToNext()) {
+            conversations[i][0] = res.getString(res.getColumnIndex("name"));
+            conversations[i][1] = res.getString(res.getColumnIndex("id"));
+            i++;
+        }
+        res.close();
+        return conversations;
     }
 
     public void initaliseDatabase(){

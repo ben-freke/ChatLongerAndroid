@@ -20,7 +20,6 @@ import android.widget.TextView;
 import org.json.JSONObject;
 import android.os.*;
 
-
 public class MainActivity extends AppCompatActivity {
     private String apiKey;
     private int userID;
@@ -28,7 +27,8 @@ public class MainActivity extends AppCompatActivity {
     private int conversationRecipient;
     private DatabaseConnector connector;
     private JsonConnector jsonConnector;
-
+    private static String CHATLONGER_URL_SEND = "http://comms.chatlonger.co.uk:80/messages/send";
+    private static String CHATLONGER_URL_RECEIVE = "http://comms.chatlonger.co.uk:80/messages/receive";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
         jsonConnector = new JsonConnector();
 
         messageContext = this;
-        //ggthis.deleteDatabase("ChatLonger");
         build();
         pollData();
 
@@ -111,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
                     object.put("user_api_key", apiKey);
                     object.put("recipient", conversationRecipient);
                     object.put("message", message);
-                    JSONObject msgObj = jsonConnector.getJson(object, "http://10.0.2.2:8181/messages/send");
+                    JSONObject msgObj = jsonConnector.getJson(object, CHATLONGER_URL_SEND);
                     int id = Integer.parseInt(msgObj.getString("id"));
                     int sender = Integer.parseInt(msgObj.getString("sender"));
                     int receiver = Integer.parseInt(msgObj.getString("receiver"));
@@ -145,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject object = new JSONObject();
                         object.put("userid", userID);
                         object.put("user_api_key", apiKey);
-                        JSONObject msgObj = jsonConnector.getJson(object, "http://10.0.2.2:8181/messages/receive");
+                        JSONObject msgObj = jsonConnector.getJson(object, CHATLONGER_URL_RECEIVE);
                         if (!(msgObj.toString().equals("[]"))){
                             Message msg = new Message();
                             Bundle b = new Bundle();

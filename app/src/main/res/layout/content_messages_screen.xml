@@ -16,51 +16,11 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="top">
+        android:layout_gravity="top"
+        android:id="@+id/convLayout"
+        android:nestedScrollingEnabled="false"
+        android:onClick="onClick">
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:weightSum="1"
-            android:paddingBottom="20dp"
-            android:onClick="onClick"
-            android:clickable="true"
-            android:id="@+id/id_1"
-            android:contentDescription="2">
-
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Ben Freke"
-                android:id="@+id/textView3"
-                android:layout_gravity="center_vertical"
-                />
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:weightSum="1"
-            android:onClick="onClick"
-            android:clickable="true"
-            android:id="@+id/id_2"
-            android:contentDescription="1">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Joe Bloggs"
-                android:id="@+id/textView2"
-                android:layout_gravity="center_vertical" />
-
-        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>
