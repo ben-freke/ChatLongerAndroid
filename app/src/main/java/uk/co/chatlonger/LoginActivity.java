@@ -33,7 +33,7 @@ public class LoginActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this;
-        this.deleteDatabase("ChatLonger");
+       // this.deleteDatabase("ChatLonger");
         setContentView(R.layout.activity_login);
         connector = new DatabaseConnector(this);
         if (checkStatus()) {
@@ -49,7 +49,6 @@ public class LoginActivity extends Activity {
                 build();
             }
         });
-
     }
 
     private void build()
@@ -98,11 +97,7 @@ public class LoginActivity extends Activity {
                     }
                 }
             };
-
         }).start();
-
-
-
     }
 
     private boolean checkStatus()

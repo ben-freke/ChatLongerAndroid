@@ -109,7 +109,7 @@ public class MessagesScreen extends AppCompatActivity {
 
     }
 
-    private void putConversation(String name, final String id)
+    public void putConversation(String name, final String id)
     {
         LinearLayout parentLayout = (LinearLayout)findViewById(R.id.convLayout);
 

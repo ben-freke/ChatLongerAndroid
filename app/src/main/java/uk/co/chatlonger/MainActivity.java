@@ -1,10 +1,13 @@
 package uk.co.chatlonger;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Display;
 import android.view.Gravity;
@@ -19,9 +22,11 @@ import android.widget.TextView;
 
 import org.json.JSONObject;
 import android.os.*;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     private String apiKey;
+    final static String MY_ACTION = "MY_ACTION";
     private int userID;
     private Context messageContext;
     private int conversationRecipient;
@@ -29,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private JsonConnector jsonConnector;
     private static String CHATLONGER_URL_SEND = "http://comms.chatlonger.co.uk:80/messages/send";
     private static String CHATLONGER_URL_RECEIVE = "http://comms.chatlonger.co.uk:80/messages/receive";
-
+    MyReceiver myReceiver;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
         messageContext = this;
         build();
-        pollData();
+        //pollData();
 
     }
 
@@ -76,6 +81,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
         doScroll();
+    }
+
+    public void onStart()
+    {
+        super.onStart();
+        myReceiver = new MyReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(GCMHandler.MY_ACTION);
+        registerReceiver(myReceiver, intentFilter);
     }
 
     @Override
@@ -123,66 +137,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void pollData(){
-        try {
-
-            final String json;
-
-           new Thread (new Runnable() {
-
-               public void run(){
-                   while (true){
-                       try{
-                           getData();
-                           Thread.sleep(3000);
-                       } catch (Exception e){}
-                   }
-               }
-
-               public void getData() {
-                    try {
-                        JSONObject object = new JSONObject();
-                        object.put("userid", userID);
-                        object.put("user_api_key", apiKey);
-                        JSONObject msgObj = jsonConnector.getJson(object, CHATLONGER_URL_RECEIVE);
-                        if (!(msgObj.toString().equals("[]"))){
-                            Message msg = new Message();
-                            Bundle b = new Bundle();
-                            b.putString("message", msgObj.toString());
-                            msg.setData(b);
-                            handler.sendMessage(msg);
-                        }
-                    } catch (Exception e){}
-                }
-
-               public Handler handler = new Handler() {
-
-                   public void handleMessage(Message msg) {
-                       String aResponse = msg.getData().getString("message");
-                       try {
-                           JSONObject jObject = new JSONObject(aResponse);
-                           int i = 1;
-
-
-                           while (jObject.getJSONObject(String.valueOf(i)).getString("content") != null){
-                               JSONObject msgObj = jObject.getJSONObject(String.valueOf(i));
-                               putMessage(msgObj.getString("content"), false);
-                               int id = Integer.parseInt(msgObj.getString("id"));
-                               int sender = Integer.parseInt(msgObj.getString("sender"));
-                               int receiver = Integer.parseInt(msgObj.getString("receiver"));
-                               String timestamp = msgObj.getString("timestamp");
-                               String content = msgObj.getString("content");
-                               connector.message(id, sender, receiver, content, timestamp);
-
-                               i++;
-                           }
-                       } catch (Exception e) {}
-                   }
-               };
-            }).start();
-        } catch (Exception e){}
-    }
-
     private void doScroll(){
         final ScrollView scroll = (ScrollView)findViewById(R.id.scroll);
         scroll.post(new Runnable() {
@@ -193,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void putMessage(String message, boolean sender){
+    public void putMessage(String message, boolean sender){
         LinearLayout linearLayout = (LinearLayout)findViewById(R.id.msgLayout);
         TextView msg = new TextView(messageContext);
         msg.setText(message);
@@ -212,6 +166,16 @@ public class MainActivity extends AppCompatActivity {
         doScroll();
     }
 
+    private class MyReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context arg0, Intent arg1) {
+            if (arg1.getIntExtra("sender", -1) == conversationRecipient)
+            {
+                putMessage(arg1.getStringExtra("message"), false);
+            }
+        }
+    }
 }
 
 
