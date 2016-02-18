@@ -175,7 +175,7 @@ public class DatabaseConnector extends SQLiteOpenHelper{
     }
 
     public String[][] getConversations(){
-        Cursor res =  db_read.rawQuery( "SELECT * FROM conversations", null );
+        Cursor res =  db_read.rawQuery("SELECT * FROM conversations", null);
         if (res.getCount() == 0) return null;
         String conversations[][] = new String[res.getCount()][2];
         int i = 0;
@@ -204,5 +204,20 @@ public class DatabaseConnector extends SQLiteOpenHelper{
         return false;
     }
 
+    public void addConfigVar(String varName, String varData)
+    {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("name", varName);
+        contentValues.put("value", varData);
+        db_write.insert("config", null, contentValues);
+    }
+
+    public String getConvigVar(String name)
+    {
+        Cursor res =  db_read.rawQuery( "SELECT * FROM config WHERE name = '" + name + "' LIMIT 1", null );
+        res.moveToFirst();
+        if (res.getCount() == 0) return null;
+        return (res.getString(res.getColumnIndex("value")));
+    }
 
 }

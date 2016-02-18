@@ -2,6 +2,8 @@ package uk.co.chatlonger;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
@@ -13,6 +15,8 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -27,9 +31,38 @@ public class MessagesScreen extends AppCompatActivity {
     private Context conversationContext;
     private boolean firstBoot = true;
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_messages_screen);
+        connector = new DatabaseConnector(this);
         build();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, Settings.class);
+            startActivity(intent);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     protected void onResume()
@@ -43,7 +76,6 @@ public class MessagesScreen extends AppCompatActivity {
         if (firstBoot){
             setContentView(R.layout.activity_messages_screen);
             setTitle("Messages");
-            connector = new DatabaseConnector(this);
             conversationContext = this;
             getConversations();
             firstBoot = false;
@@ -53,7 +85,8 @@ public class MessagesScreen extends AppCompatActivity {
 
     }
 
-    public void onClick(View v) {
+    public void onClick(View v)
+    {
 
         Intent intent = new Intent(this, NewConversation.class);
         //intent.putExtra("conversationID", v.getContentDescription().toString());
@@ -61,7 +94,8 @@ public class MessagesScreen extends AppCompatActivity {
 
     }
 
-    public void getConversations(){
+    public void getConversations()
+    {
         LinearLayout ll = (LinearLayout) findViewById(R.id.convLayout);
         ll.removeAllViews();
         String[][] conversations = connector.getConversations();
@@ -116,6 +150,5 @@ public class MessagesScreen extends AppCompatActivity {
 
         parentLayout.addView(convoLayout);
     }
-
 
 }

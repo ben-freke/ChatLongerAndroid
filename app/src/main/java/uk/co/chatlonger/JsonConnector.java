@@ -13,51 +13,43 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-/**
- * Created by Ben Freke on 31/01/2016.
- */
 public class JsonConnector {
 
     public JSONObject getJson(JSONObject reqObj, String targetUrl){
 
-      try {
+        try {
 
-          URL url;
-          url = new URL(targetUrl);
-          final HttpURLConnection urlConn;
-          DataOutputStream printout;
-          DataInputStream  input;
-          urlConn = (HttpURLConnection) url.openConnection();
-          urlConn.setRequestMethod("POST");
-          urlConn.setDoInput(true);
-          urlConn.setDoOutput(true);
-          urlConn.setUseCaches(false);
-          urlConn.setRequestProperty("Content-Type", "application/json");
-          urlConn.setRequestProperty("Host", "android.schoolportal.gr");
-          urlConn.connect();
-          OutputStreamWriter out = new   OutputStreamWriter(urlConn.getOutputStream());
-          out.write(reqObj.toString());
+            URL url;
+            url = new URL(targetUrl);
+            final HttpURLConnection urlConn;
+            DataOutputStream printout;
+            DataInputStream  input;
+            urlConn = (HttpURLConnection) url.openConnection();
+            urlConn.setRequestMethod("POST");
+            urlConn.setDoInput(true);
+            urlConn.setDoOutput(true);
+            urlConn.setUseCaches(false);
+            urlConn.setRequestProperty("Content-Type", "application/json");
+            urlConn.setRequestProperty("Host", "android.schoolportal.gr");
+            urlConn.connect();
+            OutputStreamWriter out = new   OutputStreamWriter(urlConn.getOutputStream());
+            out.write(reqObj.toString());
+            out.close();
+            BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            int status = urlConn.getResponseCode();
+            while ((line = br.readLine()) != null) {
+                sb.append(line+"\n");
+            }
+            br.close();
+            String jsonStuff = sb.toString();
+            JSONObject returnedObject = new JSONObject(jsonStuff);
+            return returnedObject;
 
-
-
-          out.close();
-          int status = urlConn.getResponseCode();
-          BufferedReader br = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-          StringBuilder sb = new StringBuilder();
-          String line;
-          while ((line = br.readLine()) != null) {
-              sb.append(line+"\n");
-          }
-          br.close();
-
-          String jsonStuff = sb.toString();
-          JSONObject returnedObject = new JSONObject(jsonStuff);
-          return returnedObject;
-
-      } catch (Exception e){
-          return null;
-      }
+        } catch (Exception e){
+            return null;
+        }
 
     }
 
