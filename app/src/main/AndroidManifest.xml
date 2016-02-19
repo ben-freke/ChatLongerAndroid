@@ -30,6 +30,7 @@
         </receiver>
 
         <service android:name=".GCMHandler" />
+        <service android:name=".PollService" />
 
         <activity android:name=".LoginActivity">
             <intent-filter>

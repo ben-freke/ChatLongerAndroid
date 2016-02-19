@@ -2,9 +2,11 @@ package uk.co.chatlonger;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -39,6 +41,25 @@ public class NewConversation extends Activity {
 
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, Settings.class);
+            startActivity(intent);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
     protected void getUser(final String email){
         boolean result = false;
         new Thread(new Runnable() {
@@ -59,6 +80,7 @@ public class NewConversation extends Activity {
                     else{
                         b.putInt("success", 1);
                         int id = Integer.parseInt(usrObj.getString("id"));
+                        b.putInt("id", id);
                         int user1 = Integer.parseInt(usrObj.getString("user1"));
                         int user2 = Integer.parseInt(usrObj.getString("user2"));
                         String name = usrObj.getString("name");
@@ -73,10 +95,14 @@ public class NewConversation extends Activity {
 
                 public void handleMessage(Message msg) {
                     if(msg.getData().getInt("success") == 1){
+
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        intent.putExtra("conversationID", String.valueOf(msg.getData().getInt("id")));
+                        startActivity(intent);
+
                         EditText editTxt = (EditText) findViewById(R.id.editText);
                         editTxt.setText(null);
-                        TextView msgTextView = (TextView) findViewById(R.id.screenMsg);
-                        msgTextView.setText("Added!");
+
                     } else {
                         TextView msgTextView = (TextView) findViewById(R.id.screenMsg);
                         msgTextView.setText("User Not Found");

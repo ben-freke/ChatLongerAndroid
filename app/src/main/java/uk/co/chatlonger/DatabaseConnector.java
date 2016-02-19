@@ -220,4 +220,12 @@ public class DatabaseConnector extends SQLiteOpenHelper{
         return (res.getString(res.getColumnIndex("value")));
     }
 
+    public void updateConfigVar(String varName, String varData)
+    {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("name", varName);
+        contentValues.put("value", varData);
+        db_write.update("config", contentValues, "name='" + varName + "'", null);
+    }
+
 }

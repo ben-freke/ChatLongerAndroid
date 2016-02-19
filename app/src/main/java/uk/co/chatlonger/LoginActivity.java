@@ -33,13 +33,17 @@ public class LoginActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this;
-       // this.deleteDatabase("ChatLonger");
+        //this.deleteDatabase("ChatLonger");
         setContentView(R.layout.activity_login);
         connector = new DatabaseConnector(this);
         if (checkStatus()) {
             /**
              * If the user is logged in, redirect them to the MessagesScreen
              */
+            if (connector.getConvigVar("deliveryPref").equals("PULL")) {
+                Intent mServiceIntent = new Intent(getApplicationContext(), PollService.class);
+                this.startService(mServiceIntent);
+            }
             Intent intent = new Intent(this, MessagesScreen.class);
             startActivity(intent);
         }
@@ -84,7 +88,9 @@ public class LoginActivity extends Activity {
 
                 public void handleMessage(Message msg) {
                     if(msg.getData().getInt("success") == 1){
-                        if (connector.getConvigVar("GCMRegID") == null ) devID();
+                        if (connector.getConvigVar("GCMRegID") == null ) new Settings().enableGCM();
+                        connector.addConfigVar("pollFreq", "3");
+                        connector.addConfigVar("deliveryPref", "PUSH");
                         Intent intent = new Intent(context, MessagesScreen.class);
                         startActivity(intent);
                     } else {
@@ -147,5 +153,6 @@ public class LoginActivity extends Activity {
 
         }).start();
     }
+
 
 }
